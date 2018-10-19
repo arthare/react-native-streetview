@@ -29,6 +29,7 @@ public class NSTStreetView extends StreetViewPanoramaView implements OnStreetVie
     private LatLng coordinate = null;
     // default value
     private int radius = 50;
+    private long lastChangeTime = System.currentTimeMillis();
 
     public NSTStreetView(Context context) {
         super(context);
@@ -111,5 +112,12 @@ public class NSTStreetView extends StreetViewPanoramaView implements OnStreetVie
 
         // Saving to local variable as panorama may not be ready yet (async)
         this.coordinate = new LatLng(lat, lng);
+
+        long currentTime = System.currentTimeMillis();
+        if(currentTime - lastChangeTime > 5000)
+        {
+            this.panorama.setPosition(this.coordinate, radius);
+            this.lastChangeTime = currentTime;
+        }
     }
 }

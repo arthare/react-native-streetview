@@ -30,6 +30,10 @@ public class NSTStreetView extends StreetViewPanoramaView implements OnStreetVie
     // default value
     private int radius = 50;
     private long lastChangeTime = System.currentTimeMillis();
+    private float tilt = 0 ;
+    private float bearing = 0 ;
+    private Integer zoom = 1;
+    private Boolean started = false;
 
     public NSTStreetView(Context context) {
         super(context);
@@ -51,7 +55,7 @@ public class NSTStreetView extends StreetViewPanoramaView implements OnStreetVie
     @Override
     public void requestLayout() {
       super.requestLayout();
-  
+
       // Required for correct requestLayout
       // H/T https://github.com/facebook/react-native/issues/4990#issuecomment-180415510
       post(measureAndLayout);
@@ -91,9 +95,21 @@ public class NSTStreetView extends StreetViewPanoramaView implements OnStreetVie
                 }
             }
         });
+
         if (coordinate != null) {
             this.panorama.setPosition(coordinate, radius);
         }
+
+       long duration = 1000;
+       if (bearing > 0) {
+             StreetViewPanoramaCamera camera = new StreetViewPanoramaCamera.Builder()
+           .zoom(zoom)
+           .tilt(tilt)
+           .bearing(bearing)
+           .build();
+             panorama.animateTo(camera,duration);
+        }
+        this.started = true;
     }
 
     public void setAllGesturesEnabled(boolean allGesturesEnabled) {
@@ -118,6 +134,27 @@ public class NSTStreetView extends StreetViewPanoramaView implements OnStreetVie
         {
             this.panorama.setPosition(this.coordinate, radius);
             this.lastChangeTime = currentTime;
+            if (this.coordinate != null && this.started  ) {
+                this.panorama.setPosition(this.coordinate, this.radius);
+            }
         }
+    }
+    public void setPov(ReadableMap pov) {
+
+        if (pov == null ) return;
+        tilt = (float) pov.getDouble("tilt");
+        bearing = (float) pov.getDouble("bearing");
+        zoom = pov.getInt("zoom");
+
+        long duration = 1000;
+         if (bearing > 0 && this.started) {
+             StreetViewPanoramaCamera camera = new StreetViewPanoramaCamera.Builder()
+             .zoom(zoom)
+             .tilt(tilt)
+             .bearing(bearing)
+             .build();
+             panorama.animateTo(camera,duration);
+          }
+
     }
 }
